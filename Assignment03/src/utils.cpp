@@ -56,7 +56,7 @@ GLuint createShader(const char* filename, GLenum type)
     glGetShaderiv(res, GL_COMPILE_STATUS, &compile_ok);
     if (compile_ok == GL_FALSE) {
         fprintf(stderr, "%s:", filename);
-        printLog(res); 
+        printLog(res);
         glDeleteShader(res);
         return 0;
     }
@@ -126,6 +126,7 @@ int openGLInit(){
     // Enable smooth point rendering
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    return 0;
 }
 
 unsigned int createProgram(const char *vshader_filename, const char* fshader_filename)
@@ -194,7 +195,7 @@ GLFWwindow* setupWindow(int width, int height)
 
     // Decide GL+GLSL versions
     const char * glsl_version = setGLSLVersion();
-    
+
 
     // Create window with graphics context
     glfwWindowHint(GLFW_SAMPLES, 4);

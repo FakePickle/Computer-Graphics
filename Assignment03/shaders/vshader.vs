@@ -11,5 +11,6 @@ out vec3 fColor;
 
 void main() {
 	gl_Position = vProjection * vView * vModel * vec4(vVertex, 1.0);
-	fColor = vColor; //Interpolate color
+    vec3 normal = normalize(vVertex);
+    fColor = (normal + vColor + 1.0) / 2.0;
 }

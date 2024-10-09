@@ -14,7 +14,7 @@
  *  or implied, including but not limited to the warranties of                *
  *  merchantability, fitness for a particular purpose, and noninfringement.   *
  *                                                                            *
- ******************************************************************************/ 
+ ******************************************************************************/
 
 //Assignment 03: Lighting and shading
 
@@ -127,7 +127,7 @@ int main(int, char**)
         glUseProgram(shaderProgram);
 
         {
-            ImGui::Begin("Information");                          
+            ImGui::Begin("Information");
             ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             ImGui::End();
         }
@@ -140,8 +140,8 @@ int main(int, char**)
         glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glBindVertexArray(VAO); 
-        
+        glBindVertexArray(VAO);
+
         glUniform3f(vColor_uniform, 0.5, 0.5, 0.5);
 				glDrawElements(GL_TRIANGLES, IBO_nelems, GL_UNSIGNED_SHORT, 0);
 
@@ -160,7 +160,6 @@ int main(int, char**)
 size_t createSphereObject(unsigned int &program, unsigned int &sphere_VAO)
 {
     glUseProgram(program);
-
     // Bind shader variables
     int vVertex_attrib = glGetAttribLocation(program, "vVertex");
     if(vVertex_attrib == -1) {
@@ -168,67 +167,85 @@ size_t createSphereObject(unsigned int &program, unsigned int &sphere_VAO)
         exit(0);
     }
 
-		//Sphere data: use spherical parameterization to produce points
-		//(x,y,z) = (r sin th cos ph, t sin th sin ph, r cos th), th \in [0, pi], ph \in [0, 2 pi]
-		//Generate vertices and normals (TODO).
-#define DELTA_ANGLE 18
-		int nTheta = 180/DELTA_ANGLE + 1;
-		int nPhi = 360/DELTA_ANGLE + 1;
-		GLfloat *sphere_vertices = new GLfloat[nTheta*nPhi*3];
-		float theta, phi, x, y, z;
-		float radius = 10.0f;
-		for (int j = 0; j<nTheta; j++)
-			for(int i=0; i<nPhi; i++)
-			{
-				theta = float(j*DELTA_ANGLE)*M_PI/180.0;
-				phi = float(i*DELTA_ANGLE)*M_PI/180.0;
-				x = sinf(theta)*cosf(phi);
-				y = sinf(theta)*sinf(phi);
-				z = cos(theta);
-				sphere_vertices[(i + j*nPhi)*3 + 0] = radius*x; sphere_vertices[(i + j*nPhi)*3 + 1] = radius*y; sphere_vertices[(i + j*nPhi)*3 + 2] = radius*z; 
-			}
+    // Sphere data: use spherical parameterization to produce points
+    #define DELTA_ANGLE 18
+    int nTheta = 180/DELTA_ANGLE + 1;
+    int nPhi = 360/DELTA_ANGLE + 1;
+    GLfloat *sphere_vertices = new GLfloat[nTheta*nPhi*3];
+    GLfloat *sphere_normals = new GLfloat[nTheta*nPhi*3];  // We'll calculate normals, even if not used in shaders
+    float theta, phi, x, y, z;
+    float radius = 10.0f;
 
-		//Generate index array
-		GLushort *sphere_indices = new GLushort[2*(nTheta-1)*(nPhi-1)*3];
-		for(int j=0; j<(nTheta-1); j++)
-			for(int i=0; i<(nPhi-1); i++)
-			{
-				//Upper triangle
-				sphere_indices[(i + j*(nPhi-1))*6 + 0] = i + j*nPhi;
-				sphere_indices[(i + j*(nPhi-1))*6 + 1] = i + (j+1)*nPhi;
-				sphere_indices[(i + j*(nPhi-1))*6 + 2] = i + 1 + j*nPhi;
+    for (int j = 0; j < nTheta; j++) {
+        for(int i = 0; i < nPhi; i++) {
+            theta = float(j*DELTA_ANGLE)*M_PI/180.0;
+            phi = float(i*DELTA_ANGLE)*M_PI/180.0;
+            x = sinf(theta)*cosf(phi);
+            y = sinf(theta)*sinf(phi);
+            z = cosf(theta);
 
-				//Lower triangle
-				sphere_indices[(i + j*(nPhi-1))*6 + 3] = i + 1 + j*nPhi;
-				sphere_indices[(i + j*(nPhi-1))*6 + 4] = i + (j+1)*nPhi;
-				sphere_indices[(i + j*(nPhi-1))*6 + 5] = i + 1 + (j+1)*nPhi;
-		}
+            // Vertex positions
+            sphere_vertices[(i + j*nPhi)*3 + 0] = radius*x;
+            sphere_vertices[(i + j*nPhi)*3 + 1] = radius*y;
+            sphere_vertices[(i + j*nPhi)*3 + 2] = radius*z;
 
-    //Generate VAO object
+            // Normals (unit vector from center to surface point)
+            sphere_normals[(i + j*nPhi)*3 + 0] = x;
+            sphere_normals[(i + j*nPhi)*3 + 1] = y;
+            sphere_normals[(i + j*nPhi)*3 + 2] = z;
+        }
+    }
+
+    // Generate index array (unchanged)
+    GLushort *sphere_indices = new GLushort[2*(nTheta-1)*(nPhi-1)*3];
+    for(int j = 0; j < (nTheta-1); j++) {
+        for(int i = 0; i < (nPhi-1); i++) {
+            // Upper triangle
+            sphere_indices[(i + j*(nPhi-1))*6 + 0] = i + j*nPhi;
+            sphere_indices[(i + j*(nPhi-1))*6 + 1] = i + (j+1)*nPhi;
+            sphere_indices[(i + j*(nPhi-1))*6 + 2] = i + 1 + j*nPhi;
+            // Lower triangle
+            sphere_indices[(i + j*(nPhi-1))*6 + 3] = i + 1 + j*nPhi;
+            sphere_indices[(i + j*(nPhi-1))*6 + 4] = i + (j+1)*nPhi;
+            sphere_indices[(i + j*(nPhi-1))*6 + 5] = i + 1 + (j+1)*nPhi;
+        }
+    }
+
+    // Generate VAO object
     glGenVertexArrays(1, &sphere_VAO);
     glBindVertexArray(sphere_VAO);
 
-    //Create VBO/IBO for the VAO
-    GLuint vertex_VBO;
+    // Create VBOs for the VAO
+    GLuint vertex_VBO, normal_VBO;
+
+    // Vertex VBO
     glGenBuffers(1, &vertex_VBO);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_VBO);
-
-		glBufferData(GL_ARRAY_BUFFER, nTheta*nPhi*3*sizeof(GLfloat), sphere_vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, nTheta*nPhi*3*sizeof(GLfloat), sphere_vertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(vVertex_attrib);
     glVertexAttribPointer(vVertex_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    delete []sphere_vertices;
 
-		GLuint indices_IBO;
-		glGenBuffers(1, &indices_IBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_IBO);
-		size_t IBO_nelems = (nTheta-1)*(nPhi-1)*6; //Number of elements in the IBO
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, IBO_nelems*sizeof(GLushort), sphere_indices, GL_STATIC_DRAW);
-		delete []sphere_indices;
+    // Normal VBO (we'll create it even if not used in shaders)
+    glGenBuffers(1, &normal_VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, normal_VBO);
+    glBufferData(GL_ARRAY_BUFFER, nTheta*nPhi*3*sizeof(GLfloat), sphere_normals, GL_STATIC_DRAW);
 
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0); //Unbind the VAO to disable changes outside this function.
+    // Create IBO
+    GLuint indices_IBO;
+    glGenBuffers(1, &indices_IBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_IBO);
+    size_t IBO_nelems = (nTheta-1)*(nPhi-1)*6; // Number of elements in the IBO
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, IBO_nelems*sizeof(GLushort), sphere_indices, GL_STATIC_DRAW);
 
-		return IBO_nelems;
+    // Clean up
+    delete[] sphere_vertices;
+    delete[] sphere_normals;
+    delete[] sphere_indices;
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0); // Unbind the VAO to disable changes outside this function.
+
+    return IBO_nelems;
 }
 
 void setupModelTransformation(unsigned int &program)
