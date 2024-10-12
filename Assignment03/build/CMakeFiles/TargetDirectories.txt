@@ -1,3 +1,0 @@
-/home/fakepickle/Programming/Computer-Graphics/Assignment03/build/CMakeFiles/Assignment03.dir
-/home/fakepickle/Programming/Computer-Graphics/Assignment03/build/CMakeFiles/edit_cache.dir
-/home/fakepickle/Programming/Computer-Graphics/Assignment03/build/CMakeFiles/rebuild_cache.dir
