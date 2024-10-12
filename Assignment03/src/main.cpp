@@ -28,7 +28,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 
 // Globals
-int screen_width = 640, screen_height = 640;
+int screen_width = 800, screen_height = 800;
 GLint vModel_uniform, vView_uniform, vProjection_uniform;
 // GLint vColor_uniform;
 glm::mat4 modelT, viewT, projectionT; // The model, view and projection transformations
@@ -68,15 +68,21 @@ int main(int, char **)
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
 
-    glm::vec3 lightPos = glm::vec3(100.0f, 10.0f, 20.0f);
-    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+    glm::vec3 lightPos = glm::vec3(10.0f, -10.0f, 10.0f);
+    glm::vec3 cameraPos = glm::vec3(10.0f, -10.0f, 10.0f);
     glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);  // White light
     glm::vec3 objectColor = glm::vec3(0.6f, 0.2f, 0.8f); // Purple object
+    glm::vec3 spotlightDir = glm::vec3(-10.0, 10.0, -10.0);
+    float cutoffAngle = glm::cos(glm::radians(30.0f)); // Spotlight cutoff angle in degrees
+    printf("Cutoff angle: %f\n", cutoffAngle);
 
     glUniform3fv(glGetUniformLocation(shaderProgram, "lightPos"), 1, glm::value_ptr(lightPos));
     glUniform3fv(glGetUniformLocation(shaderProgram, "viewPos"), 1, glm::value_ptr(cameraPos)); // Camera/view position
     glUniform3fv(glGetUniformLocation(shaderProgram, "lightColor"), 1, glm::value_ptr(lightColor));
     glUniform3fv(glGetUniformLocation(shaderProgram, "objectColor"), 1, glm::value_ptr(objectColor));
+    glUniform3fv(glGetUniformLocation(shaderProgram, "spotlightDirection"), 1, glm::value_ptr(spotlightDir));
+    glUniform1f(glGetUniformLocation(shaderProgram, "cutoffAngle"), cutoffAngle);
+    glUniform1f(glGetUniformLocation(shaderProgram, "innerCutoffAngle"), glm::cos(glm::radians(25.0f)));
 
     setupModelTransformation(shaderProgram);
     setupViewTransformation(shaderProgram);
@@ -141,6 +147,8 @@ int main(int, char **)
         ImGui::RadioButton("Colored Normals", &shadingMode, 1);
         ImGui::RadioButton("Gourad's Shading using Phong Lighting", &shadingMode, 2);
         ImGui::RadioButton("Phong's Shading using Phong Lighting", &shadingMode, 3);
+        ImGui::RadioButton("SpotLight Source", &shadingMode, 4);
+        ImGui::RadioButton("SpotLight with Outer Cone", &shadingMode, 5);
         ImGui::End();
 
         // Set the shading mode uniform in the shader
@@ -211,10 +219,12 @@ size_t createSphereObject(unsigned int &program, unsigned int &sphere_VAO)
             sphere_vertices[(i + j * nPhi) * 3 + 1] = radius * y;
             sphere_vertices[(i + j * nPhi) * 3 + 2] = radius * z;
 
+            glm::vec3 normal = glm::normalize(glm::vec3(x, y, z));
+
             // Normals (unit vector from center to surface point)
-            sphere_normals[(i + j * nPhi) * 3 + 0] = x;
-            sphere_normals[(i + j * nPhi) * 3 + 1] = y;
-            sphere_normals[(i + j * nPhi) * 3 + 2] = z;
+            sphere_normals[(i + j * nPhi) * 3 + 0] = normal.x;
+            sphere_normals[(i + j * nPhi) * 3 + 1] = normal.y;
+            sphere_normals[(i + j * nPhi) * 3 + 2] = normal.z;
         }
     }
 
@@ -253,6 +263,14 @@ size_t createSphereObject(unsigned int &program, unsigned int &sphere_VAO)
     glGenBuffers(1, &normal_VBO);
     glBindBuffer(GL_ARRAY_BUFFER, normal_VBO);
     glBufferData(GL_ARRAY_BUFFER, nTheta * nPhi * 3 * sizeof(GLfloat), sphere_normals, GL_STATIC_DRAW);
+    int vNormal_attrib = glGetAttribLocation(program, "vNormal");
+    if (vNormal_attrib == -1)
+    {
+        fprintf(stderr, "Could not bind location: vNormal\n");
+        exit(0);
+    }
+    glEnableVertexAttribArray(vNormal_attrib);
+    glVertexAttribPointer(vNormal_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     // Create IBO
     GLuint indices_IBO;

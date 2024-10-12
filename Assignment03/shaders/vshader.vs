@@ -27,17 +27,17 @@ out vec3 normal;
 
 void main() {
     // Transform vertex to world space
-    vec3 fragPos = vec3(vModel * vec4(vVertex, 1.0));
+    FragPos = vec3(vModel * vec4(vVertex, 1.0));
     
     // Transform normal to world space and normalize
-    normal = normalize(vVertex);
+    normal = normalize(mat3(transpose(inverse(vModel))) * vNormal);
 
     if (mode == 2) {
         // Point light source mode (lighting calculation)
         float ambientStrength = 0.1;
         vec3 ambient = ambientStrength * lightColor;
 
-        vec3 lightDir = normalize(lightPos - vec3(fragPos));
+        vec3 lightDir = normalize(lightPos - vec3(FragPos));
         float diff = max(dot(normal, lightDir), 0.0);
         vec3 diffuse = diff * lightColor;
 
@@ -46,9 +46,9 @@ void main() {
 
     } else if (mode == 1) {
         // Normal display mode (colored normals)
-        fColor = (normal + 1.0) / 2.0;
+        fColor = (vNormal + 1.0) / 2.0;
 
     }
     // Final position transformation for the vertex
-    gl_Position = vProjection * vView * vec4(fragPos, 1.0);
+    gl_Position = vProjection * vView * vec4(FragPos, 1.0);
 }
