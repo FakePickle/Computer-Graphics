@@ -98,6 +98,24 @@ int main(int, char **)
     {
         glfwPollEvents();
 
+        float deltaTime = io.DeltaTime;
+        float cameraSpeed = 10.0f * deltaTime;
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+            cameraPos += cameraSpeed * glm::normalize(glm::vec3(viewT[0][2], viewT[1][2], viewT[2][2]));
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            cameraPos -= cameraSpeed * glm::normalize(glm::vec3(viewT[0][2], viewT[1][2], viewT[2][2]));
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            cameraPos -= cameraSpeed * glm::normalize(glm::vec3(viewT[0][0], viewT[1][0], viewT[2][0]));
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            cameraPos += cameraSpeed * glm::normalize(glm::vec3(viewT[0][0], viewT[1][0], viewT[2][0]));
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+            cameraPos -= cameraSpeed * glm::normalize(glm::vec3(viewT[0][1], viewT[1][1], viewT[2][1]));
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+            cameraPos += cameraSpeed * glm::normalize(glm::vec3(viewT[0][1], viewT[1][1], viewT[2][1]));
+
+        glUniform3fv(glGetUniformLocation(shaderProgram, "viewPos"), 1, glm::value_ptr(cameraPos)); // Camera/view position
+
         // Get current mouse position
         int leftButtonState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
         double x, y;
@@ -148,7 +166,8 @@ int main(int, char **)
         ImGui::RadioButton("Gourad's Shading using Phong Lighting", &shadingMode, 2);
         ImGui::RadioButton("Phong's Shading using Phong Lighting", &shadingMode, 3);
         ImGui::RadioButton("SpotLight Source", &shadingMode, 4);
-        ImGui::RadioButton("SpotLight with Outer Cone", &shadingMode, 5);
+        ImGui::RadioButton("SpotLight with Outer and Inner Cone", &shadingMode, 5);
+        ImGui::RadioButton("Headlight with moving Camera", &shadingMode, 6);
         ImGui::End();
 
         // Set the shading mode uniform in the shader
