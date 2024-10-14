@@ -20,9 +20,9 @@ vec4 spotLight()
 {
     vec3 lightDir = normalize(lightPos - FragPos);
 
-    float theta = dot(lightDir, normalize(-spotlightDirection)); // Calculate the angle between the spotlight direction and the vector from the fragment to the light source
+    float theta = dot(lightDir, normalize(spotlightDirection)); // Calculate the angle between the spotlight direction and the vector from the fragment to the light source
 
-    float cutOff = cutoffAngle;
+    float cutOff = innerCutoffAngle;
 
     if (theta > cutOff)
     {
@@ -61,7 +61,7 @@ vec4 spotLightwithShadow()
 {
     vec3 lightDir = normalize(lightPos - FragPos);
 
-    float theta = dot(lightDir, normalize(-spotlightDirection)); // Calculate the angle between the spotlight direction and the vector from the fragment to the light source
+    float theta = dot(lightDir, normalize(spotlightDirection)); // Calculate the angle between the spotlight direction and the vector from the fragment to the light source
 
     float cutOff = cutoffAngle;
     float innerCutOff = innerCutoffAngle;
@@ -109,15 +109,11 @@ vec4 headlight()
 {
     // Headlight: Set light position to camera position and direction to camera forward
     vec3 lightPos = viewPos;
-    vec3 spotlightDir;
-    spotlightDir.x = -viewPos.x;
-    spotlightDir.y = viewPos.y;
-    spotlightDir.z = -viewPos.z;
     vec3 lightDir = normalize(lightPos - FragPos);
 
-    float theta = dot(lightDir, normalize(-spotlightDir)); // Calculate the angle between the spotlight direction and the vector from the fragment to the light source
+    float theta = dot(lightDir, normalize(spotlightDirection)); // Calculate the angle between the spotlight direction and the vector from the fragment to the light source
 
-    float cutOff = cutoffAngle;
+    float cutOff = innerCutoffAngle;
 
     if (theta > cutOff)
     {

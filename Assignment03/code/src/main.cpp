@@ -68,16 +68,15 @@ int main(int, char **)
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
 
-    glm::vec3 lightPos = glm::vec3(10.0f, -10.0f, 10.0f);
-    glm::vec3 cameraPos = glm::vec3(10.0f, -10.0f, 10.0f);
-    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);  // White light
-    glm::vec3 objectColor = glm::vec3(0.6f, 0.2f, 0.8f); // Purple object
-    glm::vec3 spotlightDir = glm::vec3(-10.0, 10.0, -10.0);
-    float cutoffAngle = glm::cos(glm::radians(30.0f)); // Spotlight cutoff angle in degrees
-    printf("Cutoff angle: %f\n", cutoffAngle);
+    glm::vec3 lightPos = glm::vec3(10.0f, -10.0f, 10.0f);  // Light position
+    glm::vec3 cameraPos = glm::vec3(10.0f, -10.0f, 10.0f); // Camera position
+    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);    // White light
+    glm::vec3 objectColor = glm::vec3(0.6f, 0.2f, 0.8f);   // Purple object
+    glm::vec3 spotlightDir = glm::vec3(10.0, -10.0, 10.0); // Spotlight direction
+    float cutoffAngle = glm::cos(glm::radians(30.0f));     // Spotlight cutoff angle in degrees
 
     glUniform3fv(glGetUniformLocation(shaderProgram, "lightPos"), 1, glm::value_ptr(lightPos));
-    glUniform3fv(glGetUniformLocation(shaderProgram, "viewPos"), 1, glm::value_ptr(cameraPos)); // Camera/view position
+    glUniform3fv(glGetUniformLocation(shaderProgram, "viewPos"), 1, glm::value_ptr(cameraPos));
     glUniform3fv(glGetUniformLocation(shaderProgram, "lightColor"), 1, glm::value_ptr(lightColor));
     glUniform3fv(glGetUniformLocation(shaderProgram, "objectColor"), 1, glm::value_ptr(objectColor));
     glUniform3fv(glGetUniformLocation(shaderProgram, "spotlightDirection"), 1, glm::value_ptr(spotlightDir));
@@ -101,6 +100,7 @@ int main(int, char **)
         float deltaTime = io.DeltaTime;
         float cameraSpeed = 10.0f * deltaTime;
 
+        // Camera movement W - Forward, S - Backward, A - Left, D - Right, Q - Up, E - Down
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
             cameraPos += cameraSpeed * glm::normalize(glm::vec3(viewT[0][2], viewT[1][2], viewT[2][2]));
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -160,7 +160,7 @@ int main(int, char **)
         ImGui::NewFrame();
 
         // ImGui UI for shading mode
-        static int shadingMode = 1; // Default to Phong shading
+        static int shadingMode = 1; // Default to Colored Normals
         ImGui::Begin("Settings");
         ImGui::RadioButton("Colored Normals", &shadingMode, 1);
         ImGui::RadioButton("Gourad's Shading using Phong Lighting", &shadingMode, 2);
@@ -219,7 +219,7 @@ size_t createSphereObject(unsigned int &program, unsigned int &sphere_VAO)
     int nTheta = 180 / DELTA_ANGLE + 1;
     int nPhi = 360 / DELTA_ANGLE + 1;
     GLfloat *sphere_vertices = new GLfloat[nTheta * nPhi * 3];
-    GLfloat *sphere_normals = new GLfloat[nTheta * nPhi * 3]; // We'll calculate normals, even if not used in shaders
+    GLfloat *sphere_normals = new GLfloat[nTheta * nPhi * 3];
     float theta, phi, x, y, z;
     float radius = 10.0f;
 
@@ -278,7 +278,7 @@ size_t createSphereObject(unsigned int &program, unsigned int &sphere_VAO)
     glEnableVertexAttribArray(vVertex_attrib);
     glVertexAttribPointer(vVertex_attrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-    // Normal VBO (we'll create it even if not used in shaders)
+    // Normal VBO
     glGenBuffers(1, &normal_VBO);
     glBindBuffer(GL_ARRAY_BUFFER, normal_VBO);
     glBufferData(GL_ARRAY_BUFFER, nTheta * nPhi * 3 * sizeof(GLfloat), sphere_normals, GL_STATIC_DRAW);
