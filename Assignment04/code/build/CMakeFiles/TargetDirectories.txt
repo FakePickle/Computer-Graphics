@@ -1,0 +1,3 @@
+/home/fakepickle/Programming/Git/Computer-Graphics/Assignment04/code/build/CMakeFiles/Assignment04.dir
+/home/fakepickle/Programming/Git/Computer-Graphics/Assignment04/code/build/CMakeFiles/edit_cache.dir
+/home/fakepickle/Programming/Git/Computer-Graphics/Assignment04/code/build/CMakeFiles/rebuild_cache.dir
